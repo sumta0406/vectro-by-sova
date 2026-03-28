@@ -1,64 +1,92 @@
-import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { Profile, Project } from "@/types";
+import ProjectView from "@/components/ProjectView";
+import { archiveEligibleProjects } from "@/app/actions/projects";
 
-export default function Home() {
+async function signOut() {
+  "use server";
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single<Profile>();
+
+  if (!profile) redirect("/login");
+
+  const isAdmin = profile.role === "admin";
+
+  // アーカイブ対象を自動処理
+  await archiveEligibleProjects();
+
+  const { data: members } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at")
+    .returns<Profile[]>();
+
+  const { data: projects } = await supabase
+    .from("projects")
+    .select(`*, milestones (*)`)
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false })
+    .returns<Project[]>();
+
+  const { data: archivedProjects } = await supabase
+    .from("projects")
+    .select("id, name, member_id, delivery_date, status, color")
+    .eq("is_archived", true)
+    .order("delivery_date", { ascending: false })
+    .returns<Pick<Project, "id" | "name" | "member_id" | "delivery_date" | "status" | "color">[]>();
+
+  const projectMap = new Map<string, Project>();
+  for (const p of projects ?? []) {
+    projectMap.set(p.id, { ...p, children: [] });
+  }
+  for (const p of projectMap.values()) {
+    if (p.parent_id) {
+      projectMap.get(p.parent_id)?.children?.push(p);
+    }
+  }
+  const allProjects = Array.from(projectMap.values());
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen">
+      <header className="bg-white/40 backdrop-blur-xl border-b border-white/50 sticky top-0 z-10">
+        <div className="w-full px-6 py-3 flex items-center justify-between">
+          <h1 className="text-base font-bold text-slate-900 tracking-tight">Vectro by SOVA</h1>
+          <div className="flex items-center gap-5">
+            <span className="text-sm font-medium text-slate-700">{profile.name}</span>
+            {isAdmin && (
+              <a href="/artists" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">作家管理</a>
+            )}
+            <form action={signOut}>
+              <button type="submit" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                ログアウト
+              </button>
+            </form>
+          </div>
+        </div>
+      </header>
+
+      <main className="w-full px-6 py-6 space-y-6">
+        <ProjectView
+          members={members ?? []}
+          projects={allProjects}
+          archivedProjects={archivedProjects ?? []}
+          currentUserId={user.id}
+          isAdmin={isAdmin}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
       </main>
     </div>
   );

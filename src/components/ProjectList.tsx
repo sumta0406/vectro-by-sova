@@ -110,8 +110,7 @@ export default function ProjectList({ members, projects, currentUserId, isAdmin 
             <span className="text-base font-bold text-slate-900">案件一覧</span>
             <button
               onClick={() => { setAddingParentId(null); setAddingMemberId(member.id); }}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-blue-500 transition-colors"
-              title="案件追加"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-xs font-semibold rounded-full shadow-sm transition-all"
             >
               <PlusCircleIcon />
               <span>案件追加</span>

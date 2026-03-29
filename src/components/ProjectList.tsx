@@ -55,22 +55,22 @@ import ProjectHistoryPanel from "./ProjectHistoryPanel";
 import ProjectDetail from "./ProjectDetail";
 
 const STATUS_BADGE: Record<string, string> = {
-  "未着手": "bg-slate-100 text-slate-500 ring-1 ring-slate-300",
-  "進行中": "bg-blue-50 text-blue-600 ring-1 ring-blue-200",
-  "完了": "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200",
-  "キャンセル": "bg-red-50 text-red-500 ring-1 ring-red-200",
-  "保留": "bg-amber-50 text-amber-600 ring-1 ring-amber-200",
+  "未着手": "bg-slate-200 text-slate-600 font-medium",
+  "進行中": "bg-blue-500 text-white font-semibold",
+  "完了": "bg-emerald-500 text-white font-semibold",
+  "キャンセル": "bg-red-400 text-white font-medium",
+  "保留": "bg-amber-400 text-white font-medium",
 };
 
 const BILLING_BADGE: Record<string, string> = {
-  "未請求": "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
-  "請求済": "bg-orange-50 text-orange-600 ring-1 ring-orange-200",
-  "入金": "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200",
+  "未請求": "bg-slate-200 text-slate-600 font-medium",
+  "請求済": "bg-orange-400 text-white font-semibold",
+  "入金": "bg-emerald-500 text-white font-semibold",
 };
 
 const PAYMENT_BADGE: Record<string, string> = {
-  "未払い": "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
-  "支払済": "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200",
+  "未払い": "bg-slate-200 text-slate-600 font-medium",
+  "支払済": "bg-violet-500 text-white font-semibold",
 };
 
 const TYPE_BADGE: Record<string, string> = {
@@ -214,9 +214,13 @@ function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onHistory, i
   const cyclePayment = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     const next = PAYMENT_STATUSES[(PAYMENT_STATUSES.indexOf(payment) + 1) % PAYMENT_STATUSES.length];
+    const msg = next === "支払済"
+      ? `「${project.name}」を支払済にしますか？`
+      : `「${project.name}」を未払いに戻しますか？`;
+    if (!confirm(msg)) return;
     setPayment(next);
     await updateProject(project.id, { payment_status: next });
-  }, [payment, project.id]);
+  }, [payment, project.id, project.name]);
 
   return (
     <div

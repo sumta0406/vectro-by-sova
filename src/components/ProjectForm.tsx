@@ -11,7 +11,7 @@ const PAYMENT_STATUSES: PaymentStatus[] = ["未払い", "支払済"];
 
 const INPUT = "w-full bg-white border border-slate-300 text-slate-700 placeholder-slate-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 const INPUT_SM = "bg-white border border-slate-300 text-slate-700 placeholder-slate-400 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500";
-const LABEL = "text-xs text-slate-500 mb-1 block";
+const LABEL = "text-xs font-semibold text-slate-600 mb-1 block uppercase tracking-wide";
 const SECTION = "border border-slate-200 rounded-lg p-3 space-y-3 bg-slate-50";
 
 const COLOR_OPTIONS = [
@@ -128,7 +128,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4 text-slate-300 tracking-tight">
+          <h2 className="text-lg font-bold mb-5 text-slate-900 tracking-tight">
             {project ? "案件を編集" : parentId ? "サブ案件を追加" : "案件を追加"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -214,13 +214,13 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
 
             {/* 受注条件 */}
             <div className={SECTION}>
-              <p className="text-xs font-semibold text-gray-300">受注条件</p>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">受注条件</p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={LABEL}>受注金額（税込）</label>
                   <div className="flex">
-                    <span className="px-2 py-2 bg-gray-700 border border-gray-600 border-r-0 rounded-l-lg text-gray-400 text-sm">¥</span>
+                    <span className="px-2 py-2 bg-slate-100 border border-slate-300 border-r-0 rounded-l-lg text-slate-500 text-sm">¥</span>
                     <input
                       value={orderAmount}
                       onChange={(e) => setOrderAmount(e.target.value)}
@@ -237,7 +237,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                     onChange={(e) => setCopyrightRegistration(e.target.checked)}
                     className="w-4 h-4 accent-blue-500"
                   />
-                  <label htmlFor="copyright" className="text-sm text-gray-300 cursor-pointer">著作権登録有無</label>
+                  <label htmlFor="copyright" className="text-sm text-slate-700 font-medium cursor-pointer">著作権登録有無</label>
                 </div>
               </div>
 
@@ -256,7 +256,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                       className={`${INPUT_SM} flex-1`}
                     />
                     <div className="flex">
-                      <span className="px-1.5 py-1 bg-gray-700 border border-gray-600 border-r-0 rounded-l text-gray-400 text-xs">¥</span>
+                      <span className="px-1.5 py-1 bg-slate-100 border border-slate-300 border-r-0 rounded-l text-slate-500 text-xs">¥</span>
                       <input
                         type="number"
                         value={c.amount || ""}
@@ -269,7 +269,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                   </div>
                 ))}
                 {costs.length > 0 && (
-                  <p className="text-xs text-gray-500 text-right">合計コスト: ¥{totalCost.toLocaleString()}</p>
+                  <p className="text-xs text-slate-500 font-medium text-right">合計コスト: ¥{totalCost.toLocaleString()}</p>
                 )}
               </div>
 
@@ -285,22 +285,22 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                       onChange={(e) => setManualGuarantee(e.target.checked)}
                       className="w-3.5 h-3.5 accent-blue-500"
                     />
-                    <label htmlFor="manualGuarantee" className="text-xs text-gray-400 cursor-pointer">手動入力</label>
+                    <label htmlFor="manualGuarantee" className="text-xs text-slate-600 font-medium cursor-pointer">手動入力</label>
                   </div>
                 </div>
                 <div className="flex">
-                  <span className="px-2 py-2 bg-gray-700 border border-gray-600 border-r-0 rounded-l-lg text-gray-400 text-sm">¥</span>
+                  <span className="px-2 py-2 bg-slate-100 border border-slate-300 border-r-0 rounded-l-lg text-slate-500 text-sm">¥</span>
                   <input
                     type="number"
                     value={guaranteeAmount}
                     onChange={(e) => setGuaranteeAmount(e.target.value)}
                     readOnly={!manualGuarantee}
                     placeholder="—"
-                    className={`${INPUT} rounded-l-none flex-1 ${!manualGuarantee ? "text-gray-400 cursor-default" : ""}`}
+                    className={`${INPUT} rounded-l-none flex-1 ${!manualGuarantee ? "text-slate-400 cursor-default" : ""}`}
                   />
                 </div>
                 {!manualGuarantee && (
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {!selectedMember?.guarantee_rate
                       ? "⚠ 作家管理でギャランティ率を設定してください"
                       : !orderAmount

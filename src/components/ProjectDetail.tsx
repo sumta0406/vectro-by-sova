@@ -82,7 +82,7 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
             )}
             {project.costs && project.costs.length > 0 && (
               <div>
-                <div className="text-xs text-slate-400 mb-1">コスト</div>
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">コスト</div>
                 {project.costs.map((c, i) => (
                   <div key={i} className="flex justify-between text-slate-600 text-xs">
                     <span>{c.name}</span>
@@ -94,7 +94,7 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
 
             {milestones.length > 0 && (
               <div>
-                <div className="text-xs text-slate-400 mb-1">マイルストーン</div>
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">マイルストーン</div>
                 <div className="space-y-1">
                   {milestones.map((ms) => (
                     <div key={ms.id} className="flex items-center gap-2 text-slate-600 text-xs">
@@ -150,8 +150,8 @@ function MemoPanel({ memo }: { memo: string | null }) {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-slate-400">{label}</div>
-      <div className="text-slate-700">{value}</div>
+      <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</div>
+      <div className="text-slate-900 font-medium mt-0.5">{value}</div>
     </div>
   );
 }

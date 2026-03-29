@@ -269,7 +269,9 @@ function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onHistory, i
           </div>
         )}
         {project.memo && (
-          <div className="text-sm text-slate-600 mt-1.5 leading-relaxed">{project.memo}</div>
+          <div className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+            {project.memo.length > 50 ? project.memo.slice(0, 50) + "…" : project.memo}
+          </div>
         )}
       </div>
 

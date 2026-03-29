@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Project } from "@/types";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -109,13 +110,38 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
           </div>
 
           {/* Memo */}
-          <div className="sm:w-64 sm:shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 px-5 py-4 bg-slate-50">
-            <div className="text-xs text-slate-400 mb-2">メモ</div>
-            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]">
-              {project.memo || <span className="text-slate-300">—</span>}
-            </div>
-          </div>
+          <MemoPanel memo={project.memo} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MemoPanel({ memo }: { memo: string | null }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 150;
+  const display = !memo ? null : expanded ? memo : memo.slice(0, LIMIT);
+  const truncated = memo && memo.length > LIMIT;
+
+  return (
+    <div className="sm:w-64 sm:shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 px-5 py-4 bg-slate-50">
+      <div className="text-xs text-slate-400 mb-2">メモ</div>
+      <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]">
+        {display ? (
+          <>
+            {display}{!expanded && truncated && "…"}
+            {truncated && (
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                className="block mt-2 text-xs text-blue-500 hover:text-blue-400 transition-colors"
+              >
+                {expanded ? "折りたたむ" : "さらに表示"}
+              </button>
+            )}
+          </>
+        ) : (
+          <span className="text-slate-300">—</span>
+        )}
       </div>
     </div>
   );

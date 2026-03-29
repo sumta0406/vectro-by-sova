@@ -383,11 +383,14 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                       onChange={(e) => updateMilestone(i, "email_notify", e.target.checked)}
                       className="w-3.5 h-3.5 accent-blue-500"
                     />
-                    3日前通知
+                    ✉️
                   </label>
                   <button type="button" onClick={() => removeMilestone(i)} className="text-red-500 hover:text-red-400 text-xs shrink-0">✕</button>
                 </div>
               ))}
+              {milestones.length > 0 && (
+                <p className="text-xs text-slate-400 mt-1">✉️：3日前にメール通知</p>
+              )}
             </div>
 
             <div>

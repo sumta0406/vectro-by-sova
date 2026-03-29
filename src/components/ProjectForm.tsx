@@ -182,7 +182,22 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
               </div>
               <div>
                 <label className={LABEL}>案件種別</label>
-                <select value={projectType} onChange={(e) => setProjectType(e.target.value as ProjectType | "")} className={INPUT}>
+                <select
+                  value={projectType}
+                  onChange={(e) => {
+                    const next = e.target.value as ProjectType | "";
+                    if (next === "自作品") {
+                      const hasData = orderAmount || costs.length > 0 || guaranteeAmount;
+                      if (hasData && !confirm("受注金額・コスト・ギャランティのデータが削除されます。よろしいですか？")) return;
+                      setOrderAmount("");
+                      setCosts([]);
+                      setGuaranteeAmount("");
+                      setCopyrightRegistration(false);
+                    }
+                    setProjectType(next);
+                  }}
+                  className={INPUT}
+                >
                   <option value="">未選択</option>
                   {PROJECT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -373,7 +388,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                     type="date"
                     value={m.date}
                     onChange={(e) => updateMilestone(i, "date", e.target.value)}
-                    className={`${INPUT_SM} flex-1`}
+                    className={`${INPUT_SM} flex-1 ${!m.date ? "border-amber-400 bg-amber-50" : ""}`}
                   />
                   <input value={m.memo} onChange={(e) => updateMilestone(i, "memo", e.target.value)} placeholder="メモ" className={`${INPUT_SM} flex-1`} />
                   <label className="flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap cursor-pointer">
@@ -389,7 +404,12 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                 </div>
               ))}
               {milestones.length > 0 && (
-                <p className="text-xs text-slate-400 mt-1">✉️：3日前にメール通知</p>
+                <div className="flex flex-col gap-0.5 mt-1">
+                  {milestones.some((m) => !m.date) && (
+                    <p className="text-xs text-amber-500">⚠ 日付が未入力のマイルストーンがあります</p>
+                  )}
+                  <p className="text-xs text-slate-400">✉️：3日前にメール通知</p>
+                </div>
               )}
             </div>
 

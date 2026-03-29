@@ -77,6 +77,7 @@ const TYPE_BADGE: Record<string, string> = {
   "法人請け": "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200",
   "個人請け": "bg-teal-50 text-teal-600 ring-1 ring-teal-200",
   "社内案件": "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+  "自作品": "bg-rose-50 text-rose-500 ring-1 ring-rose-200",
 };
 
 type Props = {
@@ -97,7 +98,7 @@ export default function ProjectList({ members, projects, currentUserId, isAdmin 
     projects.filter((p) => p.member_id === memberId && !p.parent_id);
 
   const handleDelete = async (project: Project) => {
-    if (!confirm(`「${project.name}」を削除しますか？サブ案件もすべて削除されます。`)) return;
+    if (!confirm(`「${project.name}」を削除しますか？`)) return;
     await deleteProject(project.id);
   };
 
@@ -245,22 +246,24 @@ function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onHistory, i
           ) : (
             <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_BADGE[status]}`}>{status}</span>
           )}
-          {isAdmin ? (
-            <>
-              <button
-                onClick={cycleBilling}
-                className={`text-xs px-2 py-0.5 rounded-full cursor-pointer hover:brightness-125 transition-all ${BILLING_BADGE[billing]}`}
-              >{billing}</button>
-              <button
-                onClick={cyclePayment}
-                className={`text-xs px-2 py-0.5 rounded-full cursor-pointer hover:brightness-125 transition-all ${PAYMENT_BADGE[payment]}`}
-              >{payment}</button>
-            </>
-          ) : (
-            <>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${BILLING_BADGE[billing]}`}>{billing}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${PAYMENT_BADGE[payment]}`}>{payment}</span>
-            </>
+          {project.project_type !== "自作品" && (
+            isAdmin ? (
+              <>
+                <button
+                  onClick={cycleBilling}
+                  className={`text-xs px-2 py-0.5 rounded-full cursor-pointer hover:brightness-125 transition-all ${BILLING_BADGE[billing]}`}
+                >{billing}</button>
+                <button
+                  onClick={cyclePayment}
+                  className={`text-xs px-2 py-0.5 rounded-full cursor-pointer hover:brightness-125 transition-all ${PAYMENT_BADGE[payment]}`}
+                >{payment}</button>
+              </>
+            ) : (
+              <>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${BILLING_BADGE[billing]}`}>{billing}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${PAYMENT_BADGE[payment]}`}>{payment}</span>
+              </>
+            )
           )}
           {project.client && <span className="text-xs text-slate-600">{project.client}</span>}
           {project.order_amount && (

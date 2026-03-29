@@ -64,23 +64,25 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
               {project.project_type && <Row label="案件種別" value={project.project_type} />}
             </div>
             <Row label="ステータス" value={STATUS_LABELS[project.status] ?? project.status} />
-            <Row label="請求" value={`${project.billing_status} / 支払: ${project.payment_status}`} />
+            {project.project_type !== "自作品" && (
+              <Row label="請求" value={`${project.billing_status} / 支払: ${project.payment_status}`} />
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Row label="着手日" value={project.start_date ?? "—"} />
               <Row label="納品期日" value={project.delivery_date ?? "—"} />
             </div>
 
-            {project.order_amount != null && (
+            {project.project_type !== "自作品" && project.order_amount != null && (
               <div className="grid grid-cols-2 gap-3">
                 <Row label="受注金額" value={`¥${project.order_amount.toLocaleString()}`} />
                 <Row label="著作権登録" value={project.copyright_registration ? "あり" : "なし"} />
               </div>
             )}
-            {project.guarantee_amount != null && (
+            {project.project_type !== "自作品" && project.guarantee_amount != null && (
               <Row label="ギャランティ" value={`¥${project.guarantee_amount.toLocaleString()}`} />
             )}
-            {project.costs && project.costs.length > 0 && (
+            {project.project_type !== "自作品" && project.costs && project.costs.length > 0 && (
               <div>
                 <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">コスト</div>
                 {project.costs.map((c, i) => (

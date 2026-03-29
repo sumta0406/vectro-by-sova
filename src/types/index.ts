@@ -1,5 +1,5 @@
 export type Role = "admin" | "member";
-export type ProjectType = "法人請け" | "個人請け" | "社内案件";
+export type ProjectType = "法人請け" | "個人請け" | "社内案件" | "自作品";
 export type ProjectStatus = "未着手" | "進行中" | "完了" | "キャンセル" | "保留";
 export type BillingStatus = "未請求" | "請求済" | "入金";
 export type PaymentStatus = "未払い" | "支払済";

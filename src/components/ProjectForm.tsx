@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Profile, Project, ProjectType, ProjectStatus, BillingStatus, PaymentStatus, ProjectCost } from "@/types";
 import { createProject, updateProject, type ProjectInput } from "@/app/actions/projects";
 
-const PROJECT_TYPES: ProjectType[] = ["法人請け", "個人請け", "社内案件"];
+const PROJECT_TYPES: ProjectType[] = ["法人請け", "個人請け", "社内案件", "自作品"];
 const STATUSES: ProjectStatus[] = ["未着手", "進行中", "完了", "キャンセル", "保留"];
 const BILLING_STATUSES: BillingStatus[] = ["未請求", "請求済", "入金"];
 const PAYMENT_STATUSES: PaymentStatus[] = ["未払い", "支払済"];
@@ -74,16 +74,25 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memberId, orderAmount, totalCost, manualGuarantee]);
 
+  const isSelfWork = projectType === "自作品";
+
   const addCost = () => setCosts([...costs, { name: "", amount: 0 }]);
   const removeCost = (i: number) => setCosts(costs.filter((_, idx) => idx !== i));
   const updateCost = (i: number, field: keyof ProjectCost, value: string) => {
     setCosts(costs.map((c, idx) => idx === i ? { ...c, [field]: field === "amount" ? Number(value) || 0 : value } : c));
   };
 
-  const addMilestone = () => setMilestones([...milestones, { type: "", date: "", memo: "", email_notify: false }]);
+  const addMilestone = (type = "") => setMilestones([...milestones, { type, date: "", memo: "", email_notify: false }]);
   const removeMilestone = (i: number) => setMilestones(milestones.filter((_, idx) => idx !== i));
   const updateMilestone = (i: number, field: keyof MilestoneInput, value: string | boolean) => {
     setMilestones(milestones.map((m, idx) => idx === i ? { ...m, [field]: value } : m));
+  };
+  const moveMilestone = (i: number, dir: -1 | 1) => {
+    const next = [...milestones];
+    const j = i + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    setMilestones(next);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,25 +189,29 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className={`grid gap-3 ${isSelfWork ? "grid-cols-1" : "grid-cols-3"}`}>
               <div>
                 <label className={LABEL}>ステータス</label>
                 <select value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)} className={INPUT}>
                   {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              <div>
-                <label className={LABEL}>請求状況</label>
-                <select value={billingStatus} onChange={(e) => setBillingStatus(e.target.value as BillingStatus)} className={INPUT}>
-                  {BILLING_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={LABEL}>作家への支払い</label>
-                <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)} className={INPUT}>
-                  {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+              {!isSelfWork && (
+                <>
+                  <div>
+                    <label className={LABEL}>請求状況</label>
+                    <select value={billingStatus} onChange={(e) => setBillingStatus(e.target.value as BillingStatus)} className={INPUT}>
+                      {BILLING_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={LABEL}>作家への支払い</label>
+                    <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)} className={INPUT}>
+                      {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -213,7 +226,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
             </div>
 
             {/* 受注条件 */}
-            <div className={SECTION}>
+            {!isSelfWork && <div className={SECTION}>
               <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">受注条件</p>
 
               <div className="grid grid-cols-2 gap-3">
@@ -309,16 +322,46 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                   </p>
                 )}
               </div>
-            </div>
+            </div>}
 
             {/* マイルストーン */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <label className={LABEL}>マイルストーン</label>
-                <button type="button" onClick={addMilestone} className="text-xs text-blue-400 hover:text-blue-300">+ 追加</button>
+                <button type="button" onClick={() => addMilestone()} className="text-xs text-blue-400 hover:text-blue-300">+ 追加</button>
+              </div>
+              {/* テンプレートチップ */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {["入稿", "納品", "試聴", "OA", "MA", "レコーディング", "MIX", "マスタリング"].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => addMilestone(t)}
+                    className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-500 transition-colors border border-slate-200"
+                  >
+                    + {t}
+                  </button>
+                ))}
               </div>
               {milestones.map((m, i) => (
-                <div key={i} className="flex gap-2 mb-2 items-center">
+                <div key={i} className="flex gap-1.5 mb-2 items-center">
+                  {/* 並び替え */}
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => moveMilestone(i, -1)}
+                      disabled={i === 0}
+                      className="text-slate-300 hover:text-slate-500 disabled:opacity-20 leading-none"
+                      aria-label="上へ"
+                    >▲</button>
+                    <button
+                      type="button"
+                      onClick={() => moveMilestone(i, 1)}
+                      disabled={i === milestones.length - 1}
+                      className="text-slate-300 hover:text-slate-500 disabled:opacity-20 leading-none"
+                      aria-label="下へ"
+                    >▼</button>
+                  </div>
                   <input value={m.type} onChange={(e) => updateMilestone(i, "type", e.target.value)} placeholder="種別" className={`${INPUT_SM} w-24`} />
                   <input
                     type="date"
@@ -336,7 +379,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                     />
                     メール
                   </label>
-                  <button type="button" onClick={() => removeMilestone(i)} className="text-red-500 hover:text-red-400 text-xs">✕</button>
+                  <button type="button" onClick={() => removeMilestone(i)} className="text-red-500 hover:text-red-400 text-xs shrink-0">✕</button>
                 </div>
               ))}
             </div>

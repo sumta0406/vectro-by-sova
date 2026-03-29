@@ -330,18 +330,24 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                 <label className={LABEL}>マイルストーン</label>
                 <button type="button" onClick={() => addMilestone()} className="text-xs text-blue-400 hover:text-blue-300">+ 追加</button>
               </div>
-              {/* テンプレートチップ */}
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {["入稿", "納品", "試聴", "OA", "MA", "レコーディング", "MIX", "マスタリング"].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => addMilestone(t)}
-                    className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-500 transition-colors border border-slate-200"
-                  >
-                    + {t}
-                  </button>
-                ))}
+              {/* テンプレート一括追加 */}
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => setMilestones([
+                    ...milestones,
+                    { type: "打ち合わせ", date: "", memo: "", email_notify: false },
+                    { type: "1Cho初稿", date: "", memo: "", email_notify: false },
+                    { type: "フルCho初稿", date: "", memo: "", email_notify: false },
+                    { type: "歌詞初稿", date: "", memo: "", email_notify: false },
+                    { type: "デモ完成", date: "", memo: "", email_notify: false },
+                    { type: "歌唱Rec素材提出", date: "", memo: "", email_notify: false },
+                    { type: "TD用素材提出", date: "", memo: "", email_notify: false },
+                  ])}
+                  className="text-xs px-3 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-500 transition-colors border border-slate-200"
+                >
+                  + テンプレートを追加
+                </button>
               </div>
               {milestones.map((m, i) => (
                 <div key={i} className="flex gap-1.5 mb-2 items-center">

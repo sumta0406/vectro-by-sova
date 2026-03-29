@@ -27,9 +27,9 @@ export default async function Home() {
   const isAdmin = profile.role === "admin";
 
   // アーカイブ対象を自動処理
-  await archiveEligibleProjects();
+  await archiveEligibleProjects().catch(() => {});
   // メールリマインダー送信（3日前のマイルストーン）
-  await sendMilestoneReminders();
+  await sendMilestoneReminders().catch(() => {});
 
   const { data: members } = await supabase
     .from("profiles")

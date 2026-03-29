@@ -145,8 +145,9 @@ export async function sendMilestoneReminders() {
     // Supabase Auth からメールアドレスを取得（admin client が必要）
     const { createAdminClient } = await import("@/lib/supabase/admin");
     const admin = createAdminClient();
-    const { data: { user } } = await admin.auth.admin.getUserById(memberId);
-    if (!user?.email) continue;
+    const { data, error: userError } = await admin.auth.admin.getUserById(memberId);
+    if (userError || !data?.user?.email) continue;
+    const user = data.user;
 
     const projectName = ms.projects?.name ?? "案件";
     const memberName = ms.projects?.profiles?.name ?? "";

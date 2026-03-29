@@ -4,6 +4,15 @@ import { useState, useMemo } from "react";
 import type { Profile, Project } from "@/types";
 import GanttChart from "./GanttChart";
 import ProjectList from "./ProjectList";
+import MilestoneNotifications from "./MilestoneNotifications";
+
+type NotificationItem = {
+  memberId: string;
+  projectName: string;
+  milestoneType: string;
+  date: string;
+  daysLeft: number;
+};
 
 type ArchivedProject = Pick<Project, "id" | "name" | "member_id" | "delivery_date" | "status" | "color">;
 
@@ -13,9 +22,10 @@ type Props = {
   archivedProjects: ArchivedProject[];
   currentUserId: string;
   isAdmin: boolean;
+  notifications: NotificationItem[];
 };
 
-export default function ProjectView({ members, projects, archivedProjects, currentUserId, isAdmin }: Props) {
+export default function ProjectView({ members, projects, archivedProjects, currentUserId, isAdmin, notifications }: Props) {
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
     isAdmin ? (members[0]?.id ?? currentUserId) : currentUserId
   );
@@ -60,6 +70,10 @@ export default function ProjectView({ members, projects, archivedProjects, curre
           ))}
         </div>
       )}
+
+      <MilestoneNotifications
+        notifications={notifications.filter((n) => n.memberId === selectedMemberId)}
+      />
 
       <div className="flex flex-col lg:flex-row lg:items-start gap-6">
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 lg:flex-1 min-w-0">

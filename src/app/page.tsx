@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Profile, Project } from "@/types";
 import ProjectView from "@/components/ProjectView";
-import MilestoneNotifications from "@/components/MilestoneNotifications";
 import { archiveEligibleProjects, sendMilestoneReminders } from "@/app/actions/projects";
 
 async function signOut() {
@@ -60,14 +59,14 @@ export default async function Home() {
     .eq("projects.is_archived", false)
     .order("date");
 
+  const todayMs = new Date(todayStr).getTime();
   const notifications = (upcomingMilestones ?? [])
     .filter((m: { projects: { member_id: string } }) =>
       isAdmin || m.projects.member_id === user.id
     )
-    .map((m: { type: string; date: string; projects: { name: string } }) => {
-      const msDate = new Date(m.date);
-      const daysLeft = Math.round((msDate.getTime() - today.setHours(0,0,0,0)) / 86400000);
-      return { projectName: m.projects.name, milestoneType: m.type, date: m.date, daysLeft };
+    .map((m: { type: string; date: string; projects: { name: string; member_id: string } }) => {
+      const daysLeft = Math.round((new Date(m.date).getTime() - todayMs) / 86400000);
+      return { memberId: m.projects.member_id, projectName: m.projects.name, milestoneType: m.type, date: m.date, daysLeft };
     });
 
   const { data: archivedProjects } = await supabase
@@ -108,13 +107,13 @@ export default async function Home() {
       </header>
 
       <main className="w-full px-6 py-6 space-y-6">
-        <MilestoneNotifications notifications={notifications} />
         <ProjectView
           members={members ?? []}
           projects={allProjects}
           archivedProjects={archivedProjects ?? []}
           currentUserId={user.id}
           isAdmin={isAdmin}
+          notifications={notifications}
         />
       </main>
     </div>

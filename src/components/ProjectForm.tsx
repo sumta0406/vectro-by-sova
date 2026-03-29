@@ -203,7 +203,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={LABEL}>登録日</label>
+                <label className={LABEL}>着手日</label>
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={INPUT} />
               </div>
               <div>

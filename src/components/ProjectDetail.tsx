@@ -67,7 +67,7 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
             <Row label="請求" value={`${project.billing_status} / 支払: ${project.payment_status}`} />
 
             <div className="grid grid-cols-2 gap-3">
-              <Row label="登録日" value={project.start_date ?? "—"} />
+              <Row label="着手日" value={project.start_date ?? "—"} />
               <Row label="納品期日" value={project.delivery_date ?? "—"} />
             </div>
 

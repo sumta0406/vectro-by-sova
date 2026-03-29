@@ -28,6 +28,7 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
       <div
         className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "min(720px, 95vw)" }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
@@ -54,9 +55,9 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
         </div>
 
         {/* Body */}
-        <div className="flex text-sm max-h-[70vh]">
-          {/* Left: fields */}
-          <div className="flex-1 px-5 py-4 space-y-3 overflow-y-auto">
+        <div className="flex flex-col sm:flex-row text-sm max-h-[75vh] overflow-y-auto">
+          {/* Fields */}
+          <div className="flex-1 px-5 py-4 space-y-3 min-w-0">
             <div className="grid grid-cols-2 gap-3">
               {project.client && <Row label="クライアント" value={project.client} />}
               {project.project_type && <Row label="案件種別" value={project.project_type} />}
@@ -105,23 +106,12 @@ export default function ProjectDetail({ project, memberName, color, onEdit, onCl
                 </div>
               </div>
             )}
-
-            {project.children && project.children.length > 0 && (
-              <div>
-                <div className="text-xs text-slate-400 mb-1">サブ案件</div>
-                {project.children.map((c) => (
-                  <div key={c.id} className="text-xs text-slate-600 flex items-center gap-1">
-                    <span className="text-slate-300">└</span>{c.name}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Right: memo */}
-          <div className="w-56 shrink-0 border-l border-slate-100 px-4 py-4 overflow-y-auto bg-slate-50">
+          {/* Memo */}
+          <div className="sm:w-64 sm:shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 px-5 py-4 bg-slate-50">
             <div className="text-xs text-slate-400 mb-2">メモ</div>
-            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]">
               {project.memo || <span className="text-slate-300">—</span>}
             </div>
           </div>

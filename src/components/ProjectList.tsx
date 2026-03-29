@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { Profile, Project, ProjectHistory } from "@/types";
 import { deleteProject, updateProject } from "@/app/actions/projects";
 import type { ProjectStatus, BillingStatus, PaymentStatus } from "@/types";
@@ -92,21 +92,9 @@ export default function ProjectList({ members, projects, currentUserId, isAdmin 
   const [addingParentId, setAddingParentId] = useState<string | null | undefined>(undefined);
   const [addingMemberId, setAddingMemberId] = useState<string | undefined>(undefined);
   const [historyProject, setHistoryProject] = useState<Project | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
   const visibleMembers = isAdmin ? members : members.filter((m) => m.id === currentUserId);
   const rootProjects = (memberId: string) =>
     projects.filter((p) => p.member_id === memberId && !p.parent_id);
-  const childProjects = (parentId: string) =>
-    projects.filter((p) => p.parent_id === parentId);
 
   const handleDelete = async (project: Project) => {
     if (!confirm(`「${project.name}」を削除しますか？サブ案件もすべて削除されます。`)) return;
@@ -134,33 +122,16 @@ export default function ProjectList({ members, projects, currentUserId, isAdmin 
               <p className="px-4 py-3 text-sm text-slate-400">案件なし</p>
             ) : (
               rootProjects(member.id).map((project) => (
-                <div key={project.id}>
-                  <ProjectRow
-                    project={project}
-                    isAdmin={isAdmin}
-                    onDetail={() => setDetailProject(project)}
-                    onEdit={() => setEditingProject(project)}
-                    onDelete={() => handleDelete(project)}
-                    onAddChild={() => { setAddingParentId(project.id); setAddingMemberId(member.id); }}
-                    onHistory={() => setHistoryProject(project)}
-                    onToggle={() => toggleExpand(project.id)}
-                    expanded={expanded.has(project.id)}
-                    hasChildren={childProjects(project.id).length > 0}
-                    indent={0}
-                  />
-                  {expanded.has(project.id) && childProjects(project.id).map((child) => (
-                    <ProjectRow
-                      key={child.id}
-                      project={child}
-                      isAdmin={isAdmin}
-                      onDetail={() => setDetailProject(child)}
-                      onEdit={() => setEditingProject(child)}
-                      onDelete={() => handleDelete(child)}
-                      onHistory={() => setHistoryProject(child)}
-                      indent={1}
-                    />
-                  ))}
-                </div>
+                <ProjectRow
+                  key={project.id}
+                  project={project}
+                  isAdmin={isAdmin}
+                  onDetail={() => setDetailProject(project)}
+                  onEdit={() => setEditingProject(project)}
+                  onDelete={() => handleDelete(project)}
+                  onHistory={() => setHistoryProject(project)}
+                  indent={0}
+                />
               ))
             )}
           </div>
@@ -215,15 +186,11 @@ type RowProps = {
   onDetail: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onAddChild?: () => void;
   onHistory: () => void;
-  onToggle?: () => void;
-  expanded?: boolean;
-  hasChildren?: boolean;
   indent: number;
 };
 
-function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onAddChild, onHistory, onToggle, expanded, hasChildren, indent }: RowProps) {
+function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onHistory, indent }: RowProps) {
   const [status, setStatus] = useState(project.status);
   const [billing, setBilling] = useState(project.billing_status);
   const [payment, setPayment] = useState(project.payment_status);
@@ -256,16 +223,6 @@ function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onAddChild, 
       className={`flex items-start gap-3 px-4 py-3.5 hover:bg-slate-50 text-sm cursor-pointer transition-colors ${indent > 0 ? "pl-8 bg-slate-50/70" : ""}`}
       onClick={onDetail}
     >
-      {indent > 0 && <span className="text-slate-300 text-xs">└</span>}
-      {indent === 0 && hasChildren && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggle?.(); }}
-          className="text-slate-400 hover:text-slate-600 text-xs w-4 transition-colors"
-        >
-          {expanded ? "▼" : "▶"}
-        </button>
-      )}
-      {indent === 0 && !hasChildren && <span className="w-4" />}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -317,11 +274,6 @@ function ProjectRow({ project, isAdmin, onDetail, onEdit, onDelete, onAddChild, 
       </div>
 
       <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-        {onAddChild && (
-          <button onClick={onAddChild} className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors rounded hover:bg-slate-100" title="サブ案件追加">
-            <AddChildIcon />
-          </button>
-        )}
         <button onClick={onHistory} className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded hover:bg-slate-100" title="履歴">
           <ClockIcon />
         </button>

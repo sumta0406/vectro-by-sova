@@ -133,15 +133,6 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {isAdmin && (
-              <div>
-                <label className={LABEL}>作家</label>
-                <select value={memberId} onChange={(e) => setMemberId(e.target.value)} className={INPUT}>
-                  {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                </select>
-              </div>
-            )}
-
             <div>
               <label className={LABEL}>案件名 *</label>
               <input value={name} onChange={(e) => setName(e.target.value)} required className={INPUT} placeholder="例：〇〇 OP楽曲制作" />

@@ -54,6 +54,7 @@ export interface Milestone {
   type: MilestoneType;
   date: string;
   memo: string | null;
+  email_notify: boolean;
   created_at: string;
 }
 

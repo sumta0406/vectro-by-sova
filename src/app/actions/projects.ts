@@ -22,7 +22,7 @@ export type ProjectInput = {
   costs?: ProjectCost[];
   guarantee_rate?: number | null;
   guarantee_amount?: number | null;
-  milestones?: { type: string; date: string; memo?: string }[];
+  milestones?: { type: string; date: string; memo?: string; email_notify?: boolean }[];
 };
 
 async function getCurrentProfile() {
@@ -118,6 +118,59 @@ export async function archiveEligibleProjects() {
     .eq("status", "完了")
     .eq("is_archived", false)
     .lt("delivery_date", cutoff);
+}
+
+export async function sendMilestoneReminders() {
+  const supabase = await createClient();
+  const today = new Date();
+  const target = new Date(today);
+  target.setDate(today.getDate() + 3);
+  const targetStr = target.toISOString().split("T")[0];
+
+  // email_notify=true かつ3日後のマイルストーンを取得
+  const { data: milestones } = await supabase
+    .from("milestones")
+    .select("*, projects!inner(name, member_id, is_archived, profiles!projects_member_id_fkey(name))")
+    .eq("date", targetStr)
+    .eq("email_notify", true)
+    .eq("projects.is_archived", false);
+
+  if (!milestones || milestones.length === 0) return;
+
+  // 各マイルストーンのメンバーのメールアドレスを取得してメール送信
+  for (const ms of milestones) {
+    const memberId = ms.projects?.member_id;
+    if (!memberId) continue;
+
+    // Supabase Auth からメールアドレスを取得（admin client が必要）
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminClient();
+    const { data: { user } } = await admin.auth.admin.getUserById(memberId);
+    if (!user?.email) continue;
+
+    const projectName = ms.projects?.name ?? "案件";
+    const memberName = ms.projects?.profiles?.name ?? "";
+    const subject = `【Vectro】リマインド: ${projectName} - ${ms.type} まで3日`;
+    const body = `${memberName} さん\n\n以下のマイルストーンが3日後に迫っています。\n\n案件: ${projectName}\nマイルストーン: ${ms.type}\n日付: ${ms.date}\n${ms.memo ? `メモ: ${ms.memo}` : ""}\n\n---\nVectro by SOVA`;
+
+    // nodemailer でSMTP送信
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT ?? 465),
+      secure: Number(process.env.SMTP_PORT ?? 465) === 465,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+    await transporter.sendMail({
+      from: `"Vectro by SOVA" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      subject,
+      text: body,
+    }).catch(() => {/* SMTP未設定でも無視 */});
+  }
 }
 
 export async function deleteProject(id: string) {

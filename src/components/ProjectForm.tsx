@@ -20,7 +20,7 @@ const COLOR_OPTIONS = [
   "#16a34a", "#c026d3", "#0284c7", "#4f46e5",
 ];
 
-type MilestoneInput = { type: string; date: string; memo: string };
+type MilestoneInput = { type: string; date: string; memo: string; email_notify: boolean };
 
 type Props = {
   members: Profile[];
@@ -58,7 +58,7 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
   const [manualGuarantee, setManualGuarantee] = useState(false);
 
   const [milestones, setMilestones] = useState<MilestoneInput[]>(
-    project?.milestones?.map((m) => ({ type: m.type, date: m.date, memo: m.memo ?? "" })) ?? []
+    project?.milestones?.map((m) => ({ type: m.type, date: m.date, memo: m.memo ?? "", email_notify: m.email_notify ?? false })) ?? []
   );
 
   // メンバーのギャランティ率から自動計算
@@ -80,9 +80,9 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
     setCosts(costs.map((c, idx) => idx === i ? { ...c, [field]: field === "amount" ? Number(value) || 0 : value } : c));
   };
 
-  const addMilestone = () => setMilestones([...milestones, { type: "", date: "", memo: "" }]);
+  const addMilestone = () => setMilestones([...milestones, { type: "", date: "", memo: "", email_notify: false }]);
   const removeMilestone = (i: number) => setMilestones(milestones.filter((_, idx) => idx !== i));
-  const updateMilestone = (i: number, field: keyof MilestoneInput, value: string) => {
+  const updateMilestone = (i: number, field: keyof MilestoneInput, value: string | boolean) => {
     setMilestones(milestones.map((m, idx) => idx === i ? { ...m, [field]: value } : m));
   };
 
@@ -327,6 +327,15 @@ export default function ProjectForm({ members, currentUserId, isAdmin, project, 
                     className={`${INPUT_SM} flex-1`}
                   />
                   <input value={m.memo} onChange={(e) => updateMilestone(i, "memo", e.target.value)} placeholder="メモ" className={`${INPUT_SM} flex-1`} />
+                  <label className="flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={m.email_notify}
+                      onChange={(e) => updateMilestone(i, "email_notify", e.target.checked)}
+                      className="w-3.5 h-3.5 accent-blue-500"
+                    />
+                    メール
+                  </label>
                   <button type="button" onClick={() => removeMilestone(i)} className="text-red-500 hover:text-red-400 text-xs">✕</button>
                 </div>
               ))}

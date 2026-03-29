@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Profile, Project } from "@/types";
 import ProjectView from "@/components/ProjectView";
-import { archiveEligibleProjects } from "@/app/actions/projects";
+import MilestoneNotifications from "@/components/MilestoneNotifications";
+import { archiveEligibleProjects, sendMilestoneReminders } from "@/app/actions/projects";
 
 async function signOut() {
   "use server";
@@ -28,6 +29,8 @@ export default async function Home() {
 
   // アーカイブ対象を自動処理
   await archiveEligibleProjects();
+  // メールリマインダー送信（3日前のマイルストーン）
+  await sendMilestoneReminders();
 
   const { data: members } = await supabase
     .from("profiles")
@@ -41,6 +44,31 @@ export default async function Home() {
     .eq("is_archived", false)
     .order("created_at", { ascending: false })
     .returns<Project[]>();
+
+  // 3日以内のマイルストーン通知
+  const today = new Date();
+  const in3days = new Date(today);
+  in3days.setDate(today.getDate() + 3);
+  const todayStr = today.toISOString().split("T")[0];
+  const in3daysStr = in3days.toISOString().split("T")[0];
+
+  const { data: upcomingMilestones } = await supabase
+    .from("milestones")
+    .select("*, projects!inner(name, member_id, is_archived)")
+    .gte("date", todayStr)
+    .lte("date", in3daysStr)
+    .eq("projects.is_archived", false)
+    .order("date");
+
+  const notifications = (upcomingMilestones ?? [])
+    .filter((m: { projects: { member_id: string } }) =>
+      isAdmin || m.projects.member_id === user.id
+    )
+    .map((m: { type: string; date: string; projects: { name: string } }) => {
+      const msDate = new Date(m.date);
+      const daysLeft = Math.round((msDate.getTime() - today.setHours(0,0,0,0)) / 86400000);
+      return { projectName: m.projects.name, milestoneType: m.type, date: m.date, daysLeft };
+    });
 
   const { data: archivedProjects } = await supabase
     .from("projects")
@@ -80,6 +108,7 @@ export default async function Home() {
       </header>
 
       <main className="w-full px-6 py-6 space-y-6">
+        <MilestoneNotifications notifications={notifications} />
         <ProjectView
           members={members ?? []}
           projects={allProjects}
